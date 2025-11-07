@@ -2,7 +2,7 @@ import { useMyPresence, useOthers } from "@/liveblocks.config";
 import LiveCursors from "./cursor/LiveCursors";
 import React, { KeyboardEvent, useCallback, useEffect, useState } from "react";
 import CursorChat from "./cursor/CursorChat";
-import { CursorMode } from "@/types/type";
+import { CursorMode, CursorState } from "@/types/type";
 
 const Live = () => {
   /**
@@ -21,7 +21,7 @@ const Live = () => {
   const [{ cursor }, updateMyPresence] = useMyPresence() as any;
 
   // track the state of the cursor (hidden, chat, reaction, reaction selector)
-  const [cursorState, setCursorState] = useState({
+  const [cursorState, setCursorState] = useState<CursorState>({
     mode: CursorMode.Hidden,
   });
 
