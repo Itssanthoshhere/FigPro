@@ -60,6 +60,7 @@ export const {
   RoomProvider,
   useMyPresence,
   useOthers,
+  useSelf,
   useUpdateMyPresence,
   useStorage,
   useMutation,
