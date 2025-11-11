@@ -62,6 +62,8 @@ export const {
   useOthers,
   useSelf,
   useUpdateMyPresence,
+  useBroadcastEvent,
+  useEventListener,
   useStorage,
   useMutation,
   useRedo,

@@ -1,14 +1,26 @@
-import { useMyPresence, useOthers } from "@/liveblocks.config";
-import LiveCursors from "./cursor/LiveCursors";
-import React, { KeyboardEvent, useCallback, useEffect, useState } from "react";
-import CursorChat from "./cursor/CursorChat";
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+
+import {
+  useBroadcastEvent,
+  useEventListener,
+  useMyPresence,
+  useOthers,
+} from "@/liveblocks.config";
+import useInterval from "@/hooks/useInterval";
 import { CursorMode, CursorState, Reaction, ReactionEvent } from "@/types/type";
+
+import LiveCursors from "./cursor/LiveCursors";
+import CursorChat from "./cursor/CursorChat";
 import ReactionSelector from "./reaction/ReactionButton";
 import FlyingReaction from "./reaction/FlyingReaction";
-import useInterval from "@/hooks/useInterval";
-import { useBroadcastEvent, useEventListener } from "@liveblocks/react";
 
-const Live = () => {
+type Props = {
+  canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
+};
+
+const Live = ({ canvasRef }: Props) => {
   /**
    * useOthers returns the list of other users in the room.
    *
@@ -194,13 +206,16 @@ const Live = () => {
 
   return (
     <div
+      id="canvas"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       className="h-[100vh] w-full flex justify-center items-center text-center"
     >
-      <h1 className="text-2xl text-white">Liveblocks Figma Clone</h1>
+      {/* <h1 className="text-2xl text-white">Liveblocks Figma Clone</h1> */}
+
+      <canvas ref={canvasRef} />
 
       {/* Render the reactions */}
       {reaction.map((r) => (
