@@ -52,20 +52,40 @@ export default function Page() {
   const selectedShapeRef = useRef<string | null>("rectangle");
 
   useEffect(() => {
-    const canvas = initializeFabric({ canvasRef, fabricRef });
+    // initialize the fabric canvas
+    const canvas = initializeFabric({
+      canvasRef,
+      fabricRef,
+    });
 
+    /**
+     * listen to the mouse down event on the canvas which is fired when the
+     * user clicks on the canvas
+     *
+     * Event inspector: http://fabricjs.com/events
+     * Event list: http://fabricjs.com/docs/fabric.Canvas.html#fire
+     */
     canvas.on("mouse:down", (options) => {
       handleCanvasMouseDown({
         options,
         canvas,
+        selectedShapeRef,
         isDrawing,
         shapeRef,
-        selectedShapeRef,
       });
     });
 
+    /**
+     * listen to the resize event on the window which is fired when the
+     * user resizes the window.
+     *
+     * We're using this to resize the canvas when the user resizes the
+     * window.
+     */
     window.addEventListener("resize", () => {
-      handleResize({ fabricRef });
+      handleResize({
+        canvas: fabricRef.current,
+      });
     });
   }, []);
 
