@@ -1,4 +1,4 @@
-import { createClient } from "@liveblocks/client";
+import { createClient, LiveMap } from "@liveblocks/client";
 import { createRoomContext } from "@liveblocks/react";
 
 // Define Liveblocks types for your application
@@ -16,6 +16,7 @@ declare global {
     Storage: {
       // Example, a conflict-free list
       // animals: LiveList<string>;
+      canvasObjects: LiveMap<string, any>;
     };
 
     // Custom user info set when authenticating with a secret key
