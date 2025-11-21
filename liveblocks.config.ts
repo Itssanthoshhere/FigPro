@@ -1,5 +1,6 @@
 import { LiveMap, createClient } from "@liveblocks/client";
 import { createRoomContext } from "@liveblocks/react";
+import { ReactionEvent } from "./types/type";
 
 // ----------------------
 // 1. FIX: Move resolveUsers + resolveMentionSuggestions HERE
@@ -27,7 +28,10 @@ const client = createClient({
 // ----------------------
 // 2. Types
 // ----------------------
-type Presence = {};
+export type Presence = {
+  cursor: { x: number; y: number } | null;
+  message: string | null;
+};
 
 type Storage = {
   canvasObjects: LiveMap<string, any>;
@@ -35,7 +39,7 @@ type Storage = {
 
 type UserMeta = {};
 
-type RoomEvent = {};
+type RoomEvent = ReactionEvent;
 
 export type ThreadMetadata = {
   resolved: boolean;

@@ -6,10 +6,10 @@ import {
   useBroadcastEvent,
   useEventListener,
   useMyPresence,
-  useOthers,
+  // useOthers,
 } from "@/liveblocks.config";
 import useInterval from "@/hooks/useInterval";
-import { CursorMode, CursorState, Reaction, ReactionEvent } from "@/types/type";
+import { CursorMode, CursorState, Reaction } from "@/types/type";
 
 import LiveCursors from "./cursor/LiveCursors";
 import CursorChat from "./cursor/CursorChat";
@@ -36,7 +36,7 @@ const Live = ({ canvasRef, undo, redo }: Props) => {
    *
    * useOthers: https://liveblocks.io/docs/api-reference/liveblocks-react#useOthers
    */
-  const others = useOthers();
+  // const others = useOthers();
 
   /**
    * useMyPresence returns the presence of the current user in the room.
@@ -44,7 +44,7 @@ const Live = ({ canvasRef, undo, redo }: Props) => {
    *
    * useMyPresence: https://liveblocks.io/docs/api-reference/liveblocks-react#useMyPresence
    */
-  const [{ cursor }, updateMyPresence] = useMyPresence() as any;
+  const [{ cursor }, updateMyPresence] = useMyPresence();
 
   /**
    * useBroadcastEvent is used to broadcast an event to all the other users in the room.
@@ -106,7 +106,7 @@ const Live = ({ canvasRef, undo, redo }: Props) => {
    * useEventListener: https://liveblocks.io/docs/api-reference/liveblocks-react#useEventListener
    */
   useEventListener((eventData) => {
-    const event = eventData.event as ReactionEvent;
+    const event = eventData.event;
 
     setReaction((reactions) =>
       reactions.concat([
@@ -250,7 +250,7 @@ const Live = ({ canvasRef, undo, redo }: Props) => {
         onPointerLeave={handlePointerLeave}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        className="relative flex h-full w-full flex-1 items-center justify-center"
+        className="relative flex items-center justify-center flex-1 w-full h-full"
       >
         {/* <h1 className="text-2xl text-white">Liveblocks Figma Clone</h1> */}
 
@@ -283,7 +283,7 @@ const Live = ({ canvasRef, undo, redo }: Props) => {
         )}
 
         {/* Show the live cursors of other users */}
-        <LiveCursors others={others} />
+        <LiveCursors />
 
         {/* Show the comments */}
         <Comments />
