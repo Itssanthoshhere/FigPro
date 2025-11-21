@@ -4,10 +4,8 @@ import { fabric } from "fabric";
 import { useEffect, useRef, useState } from "react";
 
 // import { CollaborativeApp } from "./CollaborativeApp";
-import Live from "@/components/Live";
-import Navbar from "@/components/Navbar";
-import LeftSidebar from "@/components/LeftSidebar";
-import RightSidebar from "@/components/RightSidebar";
+
+import { useMutation, useRedo, useStorage, useUndo } from "@/liveblocks.config";
 import {
   handleCanvasMouseDown,
   handleCanvasMouseMove,
@@ -15,18 +13,20 @@ import {
   handleCanvasObjectModified,
   handleCanvasObjectScaling,
   handleCanvasSelectionCreated,
+  handleCanvasZoom,
+  handleCanvasObjectMoving,
   handlePathCreated,
   handleResize,
   initializeFabric,
   renderCanvas,
 } from "@/lib/canvas";
-import { ActiveElement, Attributes } from "@/types/type";
-import { useMutation, useRedo, useStorage, useUndo } from "@/liveblocks.config";
-import { defaultNavElement } from "@/constants";
 import { handleDelete, handleKeyDown } from "@/lib/key-events";
+import { LeftSidebar, Live, Navbar, RightSidebar } from "@/components/index";
 import { handleImageUpload } from "@/lib/shapes";
+import { defaultNavElement } from "@/constants";
+import { ActiveElement, Attributes } from "@/types/type";
 
-export default function Page() {
+const Home = () => {
   /**
    * useUndo and useRedo are hooks provided by Liveblocks that allow you to
    * undo and redo mutations.
@@ -46,36 +46,7 @@ export default function Page() {
    *
    * Over here, we are storing the canvas objects in the key-value store.
    */
-  const canvasObjects = useStorage((root) => root.canvasObjects) ?? new Map();
-
-  /**
-   * syncShapeInStorage is a mutation that syncs the shape in the key-value
-   * store of liveblocks.
-   *
-   * We're using this mutation to sync the shape in the key-value store
-   * whenever user performs any action on the canvas such as drawing, moving
-   * editing, deleting etc.
-   */
-  const syncShapeInStorage = useMutation(({ storage }, object) => {
-    // if the passed object is null, return
-    if (!object) return;
-    const { objectId } = object;
-
-    /**
-     * Turn Fabric object (kclass) into JSON format so that we can store it in the
-     * key-value store.
-     */
-    const shapeData = object.toJSON();
-    shapeData.objectId = objectId;
-
-    const canvasObjects = storage.get("canvasObjects");
-    /**
-     * set is a method provided by Liveblocks that allows you to set a value
-     *
-     * set: https://liveblocks.io/docs/api-reference/liveblocks-client#LiveMap.set
-     */
-    canvasObjects.set(objectId, shapeData);
-  }, []);
+  const canvasObjects = useStorage((root) => root.canvasObjects);
 
   /**
    * canvasRef is a reference to the canvas element that we'll use to initialize
@@ -217,6 +188,35 @@ export default function Page() {
   }, []);
 
   /**
+   * syncShapeInStorage is a mutation that syncs the shape in the key-value
+   * store of liveblocks.
+   *
+   * We're using this mutation to sync the shape in the key-value store
+   * whenever user performs any action on the canvas such as drawing, moving
+   * editing, deleting etc.
+   */
+  const syncShapeInStorage = useMutation(({ storage }, object) => {
+    // if the passed object is null, return
+    if (!object) return;
+    const { objectId } = object;
+
+    /**
+     * Turn Fabric object (kclass) into JSON format so that we can store it in the
+     * key-value store.
+     */
+    const shapeData = object.toJSON();
+    shapeData.objectId = objectId;
+
+    const canvasObjects = storage.get("canvasObjects");
+    /**
+     * set is a method provided by Liveblocks that allows you to set a value
+     *
+     * set: https://liveblocks.io/docs/api-reference/liveblocks-client#LiveMap.set
+     */
+    canvasObjects.set(objectId, shapeData);
+  }, []);
+
+  /**
    * Set the active element in the navbar and perform the action based
    * on the selected element.
    *
@@ -261,11 +261,15 @@ export default function Page() {
         }
         break;
 
+      // for comments, do nothing
+      case "comments":
+        break;
+
       default:
+        // set the selected shape to the selected element
+        selectedShapeRef.current = elem?.value as string;
         break;
     }
-
-    selectedShapeRef.current = elem?.value as string;
   };
 
   useEffect(() => {
@@ -361,6 +365,19 @@ export default function Page() {
     });
 
     /**
+     * listen to the object moving event on the canvas which is fired
+     * when the user moves an object on the canvas.
+     *
+     * Event inspector: http://fabricjs.com/events
+     * Event list: http://fabricjs.com/docs/fabric.Canvas.html#fire
+     */
+    canvas?.on("object:moving", (options) => {
+      handleCanvasObjectMoving({
+        options,
+      });
+    });
+
+    /**
      * listen to the selection created event on the canvas which is fired
      * when the user selects an object on the canvas.
      *
@@ -386,6 +403,20 @@ export default function Page() {
       handleCanvasObjectScaling({
         options,
         setElementAttributes,
+      });
+    });
+
+    /**
+     * listen to the mouse wheel event on the canvas which is fired when
+     * the user scrolls the mouse wheel on the canvas.
+     *
+     * Event inspector: http://fabricjs.com/events
+     * Event list: http://fabricjs.com/docs/fabric.Canvas.html#fire
+     */
+    canvas.on("mouse:wheel", (options) => {
+      handleCanvasZoom({
+        options,
+        canvas,
       });
     });
 
@@ -429,8 +460,26 @@ export default function Page() {
        * dispose: http://fabricjs.com/docs/fabric.Canvas.html#dispose
        */
       canvas.dispose();
+
+      // remove the event listeners
+      window.removeEventListener("resize", () => {
+        handleResize({
+          canvas: null,
+        });
+      });
+
+      window.removeEventListener("keydown", (e) =>
+        handleKeyDown({
+          e,
+          canvas: fabricRef.current,
+          undo,
+          redo,
+          syncShapeInStorage,
+          deleteShapeFromStorage,
+        })
+      );
     };
-  }, []);
+  }, [canvasRef]); // run this effect only once when the component mounts and the canvasRef changes
 
   // render the canvas when the canvasObjects from live storage changes
   useEffect(() => {
@@ -478,4 +527,6 @@ export default function Page() {
       </section>
     </main>
   );
-}
+};
+
+export default Home;
